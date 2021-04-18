@@ -1,4 +1,4 @@
-use crate::config;
+use crate::config::Config;
 use anyhow::Result;
 use structopt::StructOpt;
 
@@ -6,6 +6,7 @@ use structopt::StructOpt;
 pub struct List {}
 
 pub fn list() -> Result<()> {
-    config::list_keys()?;
+    let config = Config::open()?;
+    config.print();
     Ok(())
 }

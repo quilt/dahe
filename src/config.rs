@@ -21,7 +21,7 @@ pub fn init() -> Result<PathBuf> {
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Config {
-    keys: Vec<KeyInfo>,
+    pub keys: Vec<KeyInfo>,
 }
 
 impl Config {
@@ -38,10 +38,24 @@ impl Config {
         }
     }
 
-    pub fn write(&self) -> Result<()> {
+    pub fn save(&self) -> Result<()> {
         let mut f = fs::File::create(config_file()?)?;
         f.write_all(toml::to_vec(&self)?.as_ref())?;
         Ok(())
+    }
+
+    pub fn print(&self) {
+        if self.keys.is_empty() {
+            println!("Keystore empty.");
+            return;
+        }
+
+        println!("Available keys");
+        println!("---");
+
+        for (i, key) in self.keys.iter().enumerate() {
+            println!("{}:\t{}", i, key.address);
+        }
     }
 }
 
@@ -50,28 +64,4 @@ pub struct KeyInfo {
     pub path: PathBuf,
     pub address: String,
     pub password: bool,
-}
-
-pub fn add_key(k: KeyInfo) -> Result<()> {
-    let mut config = Config::open()?;
-    config.keys.push(k);
-    config.write()
-}
-
-pub fn list_keys() -> Result<()> {
-    let config = Config::open()?;
-
-    if config.keys.is_empty() {
-        println!("Keystore empty.");
-        return Ok(());
-    }
-
-    println!("Available keys");
-    println!("---");
-
-    for (i, key) in config.keys.iter().enumerate() {
-        println!("{}:\t{}", i, key.address);
-    }
-
-    Ok(())
 }

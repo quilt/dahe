@@ -1,4 +1,4 @@
-use crate::config::{self, KeyInfo};
+use crate::config::{self, Config, KeyInfo};
 use anyhow::{bail, Result};
 use eth_keystore::encrypt_key;
 use ethers::{core::k256::ecdsa::SigningKey, signers::Wallet};
@@ -56,7 +56,9 @@ pub fn import_pk(pk: &[u8]) -> Result<()> {
         password: pass == "",
     };
 
-    config::add_key(key)
+    let mut config = Config::open()?;
+    config.keys.push(key);
+    config.save()
 }
 
 pub fn import_mnemonic(_: &str, _: u64) -> Result<()> {
