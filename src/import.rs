@@ -3,18 +3,21 @@ use crate::hex::HexData;
 use anyhow::{bail, Result};
 use eth_keystore::encrypt_key;
 use ethers::{core::k256::ecdsa::SigningKey, signers::Wallet};
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub enum Import {
-    /// Import a private key (alias = pk)
+    /// Imports a private key
+    #[structopt(name = "pk")]
     PrivateKey(PrivateKey),
-    /// Import a private from a mnemonic
+    /// Imports a derived private key from a mnemonic
     Mnemonic(Mnemonic),
+    /// Imports a keystore file
+    Keystore(Keystore),
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(alias = "pk")]
 pub struct PrivateKey {
     /// Private key
     pub key: HexData,
@@ -29,10 +32,17 @@ pub struct Mnemonic {
     pub index: u64,
 }
 
+#[derive(Debug, StructOpt)]
+pub struct Keystore {
+    /// Path
+    pub path: PathBuf,
+}
+
 pub fn import(ctx: &Import) -> Result<()> {
     match ctx {
         Import::PrivateKey(pk) => import_pk(&pk.key.0),
-        Import::Mnemonic(m) => import_mnemonic(m.mnemonic.as_str(), m.index),
+        Import::Mnemonic(_) => unimplemented!(),
+        Import::Keystore(_) => unimplemented!(),
     }
 }
 
@@ -60,8 +70,4 @@ pub fn import_pk(pk: &[u8]) -> Result<()> {
     let mut config = Config::open()?;
     config.keys.push(key);
     config.save()
-}
-
-pub fn import_mnemonic(_: &str, _: u64) -> Result<()> {
-    unimplemented!("not supported (yet)")
 }

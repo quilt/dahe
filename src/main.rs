@@ -14,9 +14,12 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "dahe")]
 pub enum Args {
+    /// Imports an account to sign messages with
     Import(Import),
-    #[structopt(alias = "ls")]
+    /// Lists available accounts
+    #[structopt(name = "ls")]
     List(List),
+    /// Signs an AUTH message
     Sign(Sign),
 }
 
