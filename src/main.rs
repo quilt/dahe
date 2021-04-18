@@ -4,36 +4,22 @@ mod sign;
 
 use anyhow::Result;
 use import::{import, Import};
+use sign::{sign, Sign};
 use std::process::exit;
-
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-pub struct Sign {
-    pub bar: Option<String>,
-}
-
-#[derive(Debug, StructOpt)]
-pub enum Command {
+#[structopt(name = "dahe")]
+pub enum Args {
     Import(Import),
     Sign(Sign),
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "dahe")]
-pub struct Args {
-    #[structopt(subcommand)]
-    pub command: Command,
-}
-
 fn try_main() -> Result<()> {
-    let args = Args::from_args();
-    match args.command {
-        Command::Import(ctx) => import(&ctx)?,
-        _ => unimplemented!(),
-    };
-
-    Ok(())
+    match Args::from_args() {
+        Args::Import(ctx) => import(&ctx),
+        Args::Sign(ctx) => sign(&ctx),
+    }
 }
 
 fn main() {
