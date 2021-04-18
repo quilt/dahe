@@ -1,4 +1,5 @@
 mod config;
+mod hex;
 mod import;
 mod list;
 mod sign;

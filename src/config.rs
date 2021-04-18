@@ -1,5 +1,6 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use directories::ProjectDirs;
+use eth_keystore::decrypt_key;
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::PathBuf};
 
@@ -36,6 +37,22 @@ impl Config {
                 }
             }
         }
+    }
+
+    pub fn fetch_key(&self, n: usize) -> Result<Vec<u8>> {
+        if self.keys.len() <= n {
+            bail!("unknown key {}, max {}", n, self.keys.len())
+        }
+
+        let key = &self.keys[n];
+
+        let mut pass = String::new();
+        if key.password {
+            pass = rpassword::read_password_from_tty(Some("Password: "))?;
+        }
+
+        let k = decrypt_key(&key.path, pass)?;
+        Ok(k)
     }
 
     pub fn save(&self) -> Result<()> {

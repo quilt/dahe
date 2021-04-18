@@ -1,4 +1,5 @@
 use crate::config::{self, Config, KeyInfo};
+use crate::hex::HexData;
 use anyhow::{bail, Result};
 use eth_keystore::encrypt_key;
 use ethers::{core::k256::ecdsa::SigningKey, signers::Wallet};
@@ -53,7 +54,7 @@ pub fn import_pk(pk: &[u8]) -> Result<()> {
     let key = KeyInfo {
         path: config_dir.join(uuid),
         address,
-        password: pass == "",
+        password: pass != "",
     };
 
     let mut config = Config::open()?;
@@ -63,18 +64,4 @@ pub fn import_pk(pk: &[u8]) -> Result<()> {
 
 pub fn import_mnemonic(_: &str, _: u64) -> Result<()> {
     unimplemented!("not supported (yet)")
-}
-
-#[derive(Debug)]
-pub struct HexData(Vec<u8>);
-
-impl std::str::FromStr for HexData {
-    type Err = hex::FromHexError;
-
-    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
-        if 1 < s.len() && s.starts_with("0x") {
-            s = &s[2..];
-        }
-        hex::decode(s).map(HexData)
-    }
 }
