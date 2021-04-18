@@ -1,6 +1,7 @@
-use crate::config;
+use crate::config::{self, KeyInfo};
 use anyhow::{bail, Result};
 use eth_keystore::encrypt_key;
+use ethers::{core::k256::ecdsa::SigningKey, signers::Wallet};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -28,9 +29,6 @@ pub struct Mnemonic {
 }
 
 pub fn import(ctx: &Import) -> Result<()> {
-    println!("importing");
-    println!("{:?}", ctx);
-
     match ctx {
         Import::PrivateKey(pk) => import_pk(&pk.key.0),
         Import::Mnemonic(m) => import_mnemonic(m.mnemonic.as_str(), m.index),
@@ -38,6 +36,10 @@ pub fn import(ctx: &Import) -> Result<()> {
 }
 
 pub fn import_pk(pk: &[u8]) -> Result<()> {
+    let w: Wallet<SigningKey> = SigningKey::from_bytes(pk)?.into();
+    let address = format!("{:?}", w.address());
+    println!("importing {}", address);
+
     let pass = rpassword::read_password_from_tty(Some("Password: "))?;
     let pass2 = rpassword::read_password_from_tty(Some("Password (again): "))?;
 
@@ -45,9 +47,16 @@ pub fn import_pk(pk: &[u8]) -> Result<()> {
         bail!("passwords did not match");
     }
 
-    encrypt_key(config::init()?, &mut rand::thread_rng(), &pk, pass)
-        .map(|_| ())
-        .map_err(|err| err.into())
+    let config_dir = config::init()?;
+    let uuid = encrypt_key(&config_dir, &mut rand::thread_rng(), &pk, &pass)?;
+
+    let key = KeyInfo {
+        path: config_dir.join(uuid),
+        address,
+        password: pass == "",
+    };
+
+    config::add_key(key)
 }
 
 pub fn import_mnemonic(_: &str, _: u64) -> Result<()> {
