@@ -26,7 +26,7 @@ pub fn sign(ctx: &Sign) -> Result<()> {
     let pk = config.fetch_key(ctx.key)?;
 
     let commit = compute_commit(&ctx.params);
-    println!("commit:\t{}", hex::encode(commit));
+    println!("commit:\t{}", hex::encode(commit.clone()));
 
     let sig = compute_sig(ctx.invoker, &commit, &pk)?;
     println!("{:?}", sig);
